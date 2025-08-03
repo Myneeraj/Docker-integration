@@ -1,0 +1,17 @@
+pipeline {
+    agent {
+        docker {
+            image 'python:3.10-slim'
+            args '-u root'  // Optional: run as root if needed
+        }
+    }
+
+    stages {
+        stage('Hello from Docker') {
+            steps {
+                sh 'python --version'
+                sh 'echo "Hello from inside a Docker container!"'
+            }
+        }
+    }
+}
