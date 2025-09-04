@@ -1,0 +1,65 @@
+pipeline {
+    agent any // or 'docker' if you have a build agent with Docker installed
+
+    environment {
+        // Define environment variables
+        DOCKER_IMAGE = "my-docker-registry.com/my-app:${env.BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                // Check out the source code from your repository
+                git url: 'https://github.com/your-org/your-repo.git',
+                    branch: 'main'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build the Docker image using the Dockerfile
+                    // The `.` indicates the build context is the current directory
+                    sh "docker build -t ${DOCKER_IMAGE} ."
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                script {
+                    // You can run tests on the built image
+                    // The `--target` flag specifies the build stage to use for tests
+                    // Assuming your Dockerfile has a test stage named 'tester'
+                    sh "docker build --target tester -t my-app-tester ."
+                    sh "docker run --rm my-app-tester npm test"
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    // Push the final Docker image to a registry (e.g., Docker Hub)
+                    // You must have configured credentials in Jenkins
+                    docker.withRegistry('https://my-docker-registry.com', 'docker-hub-credentials') {
+                        sh "docker push ${DOCKER_IMAGE}"
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        // Actions to perform after the pipeline finishes
+        always {
+            echo "Pipeline finished."
+        }
+        success {
+            echo 'Build, Test, and Push successful!'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
+    }
+}
