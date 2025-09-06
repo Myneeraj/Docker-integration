@@ -59,7 +59,7 @@ pipeline {
             echo 'Build, Test, and Push successful!'
         }
         failure {
-            echo 'Pipeline failed successfully this time.'
+            echo 'Pipeline failed successfully this times.'
         }
     }
 }
